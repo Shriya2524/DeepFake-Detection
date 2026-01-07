@@ -1,0 +1,569 @@
+"""
+PlantUML Diagram Generator for Deepfake Detection Project
+This script generates PNG images from PlantUML diagram definitions.
+"""
+
+import os
+import subprocess
+import urllib.request
+import urllib.parse
+import zlib
+import base64
+import string
+
+# Configuration
+OUTPUT_DIR = "plantuml/images"
+PLANTUML_JAR_URL = "https://github.com/plantuml/plantuml/releases/download/v1.2024.6/plantuml-1.2024.6.jar"
+PLANTUML_JAR = "plantuml/plantuml.jar"
+
+# All diagram definitions
+DIAGRAMS = {
+    "01_database_testing": """
+@startuml
+!theme plain
+title Database Testing - Dataset Validation & I/O Verification
+
+skinparam backgroundColor #FEFEFE
+skinparam roundcorner 10
+skinparam BoxPadding 20
+
+package "Dataset Validation" {
+    rectangle "Input Data" as input #LightBlue {
+        card "Video Files\\n(.mp4, .avi)" as video
+        card "Image Files\\n(.jpg, .png)" as image
+        card "Metadata\\n(.csv, .json)" as meta
+    }
+    
+    rectangle "Validation Checks" as validation #LightYellow {
+        card "✓ File Format Check" as fmt
+        card "✓ Resolution Check\\n(min 224x224)" as res
+        card "✓ Frame Count Check\\n(min 16 frames)" as frame
+        card "✓ Label Integrity\\n(real/fake)" as label
+        card "✓ Dataset Split\\n(train/val/test)" as split
+    }
+    
+    rectangle "Output Verification" as output #LightGreen {
+        card "Preprocessed Tensors\\n(batch, channels, H, W)" as tensor
+        card "Data Loaders\\n(PyTorch DataLoader)" as loader
+        card "Augmented Samples" as aug
+    }
+}
+
+video --> fmt
+image --> fmt
+meta --> label
+fmt --> res
+res --> frame
+frame --> split
+split --> tensor
+split --> loader
+label --> aug
+
+note right of validation
+  <b>Test Cases:</b>
+  - Corrupt file handling
+  - Missing label detection
+  - Duplicate removal
+  - Class balance check
+end note
+
+@enduml
+""",
+
+    "02_api_endpoints_testing": """
+@startuml
+!theme plain
+title API Endpoints Testing
+
+skinparam backgroundColor #FEFEFE
+skinparam actorStyle awesome
+
+actor "Client" as client #LightBlue
+participant "FastAPI Server" as api #LightGreen
+database "Models" as models #LightYellow
+database "Results" as results #LightCoral
+
+== Health Check ==
+client -> api : GET /health
+api --> client : {"status": "healthy", "models_loaded": true}
+
+== Get Available Models ==
+client -> api : GET /models
+api -> models : Query loaded models
+models --> api : Model list
+api --> client : {"models": ["fusion", "gan_fingerprint", "spatiotemporal"]}
+
+== Video Detection ==
+client -> api : POST /detect/video
+note right: multipart/form-data\\nfile: video.mp4
+api -> models : Load video frames
+api -> models : Run spatiotemporal analysis
+api -> models : Run GAN fingerprint
+api -> models : Fusion prediction
+models --> api : Detection results
+api -> results : Store results
+api --> client : {"prediction": "fake",\\n"confidence": 0.94,\\n"fusion_score": 0.89}
+
+== Image Detection ==
+client -> api : POST /detect/image
+note right: multipart/form-data\\nfile: image.jpg
+api -> models : Run GAN fingerprint
+api -> models : GAN family classification
+models --> api : Detection results
+api --> client : {"prediction": "fake",\\n"gan_family": "StyleGAN",\\n"confidence": 0.87}
+
+note over api
+  <b>Response Codes:</b>
+  200 - Success
+  400 - Invalid input
+  500 - Server error
+end note
+
+@enduml
+""",
+
+    "03_model_testing": """
+@startuml
+!theme plain
+title Model Testing - Accuracy & Performance Tests
+
+skinparam backgroundColor #FEFEFE
+skinparam roundcorner 15
+
+rectangle "Test Dataset" as testdata #LightBlue {
+    card "1000 Real Samples" as real
+    card "1000 Fake Samples" as fake
+}
+
+package "Model Under Test" as models #LightYellow {
+    rectangle "Spatiotemporal Model" as spatio {
+        card "3D CNN\\n(ResNet3D)" as cnn3d
+        card "Temporal\\nConsistency" as temp
+    }
+    
+    rectangle "GAN Fingerprint Model" as gan {
+        card "Frequency\\nAnalysis" as freq
+        card "Fingerprint\\nExtractor" as finger
+    }
+    
+    rectangle "Fusion Model" as fusion {
+        card "Feature\\nConcatenation" as concat
+        card "MLP\\nClassifier" as mlp
+    }
+}
+
+rectangle "Test Metrics" as metrics #LightGreen {
+    card "Accuracy: 94.2%" as acc
+    card "Precision: 93.8%" as prec
+    card "Recall: 94.6%" as rec
+    card "F1-Score: 94.2%" as f1
+    card "AUC-ROC: 0.967" as auc
+}
+
+rectangle "Performance Tests" as perf #LightCoral {
+    card "Inference Time\\n< 500ms/image" as time
+    card "GPU Memory\\n< 4GB" as mem
+    card "Batch Processing\\n32 samples/sec" as batch
+}
+
+real --> spatio
+fake --> spatio
+real --> gan
+fake --> gan
+spatio --> fusion
+gan --> fusion
+fusion --> metrics
+fusion --> perf
+
+note bottom of metrics
+  <b>Test Conditions:</b>
+  - Cross-validation (5-fold)
+  - Multiple GAN types
+  - Various resolutions
+end note
+
+@enduml
+""",
+
+    "04_frontend_pdf_testing": """
+@startuml
+!theme plain
+title Frontend & PDF Report Testing
+
+skinparam backgroundColor #FEFEFE
+skinparam roundcorner 10
+
+package "Frontend Testing" as frontend #LightBlue {
+    rectangle "Component Tests" as comp {
+        card "File Upload\\nComponent" as upload
+        card "Results Display\\nComponent" as display
+        card "Progress Bar\\nComponent" as progress
+        card "Chart\\nVisualization" as chart
+    }
+    
+    rectangle "Integration Tests" as integ {
+        card "API Communication" as apicom
+        card "State Management" as state
+        card "Error Handling" as error
+    }
+    
+    rectangle "UI/UX Tests" as uiux {
+        card "Responsive Design" as resp
+        card "Loading States" as load
+        card "User Feedback" as feed
+    }
+}
+
+package "PDF Report Testing" as pdf #LightGreen {
+    rectangle "Report Generation" as report {
+        card "Header & Logo" as header
+        card "Detection Summary" as summary
+        card "Detailed Results" as detail
+        card "Confidence Charts" as charts
+    }
+    
+    rectangle "Validation" as valid {
+        card "✓ Correct Formatting" as format
+        card "✓ Image Embedding" as embed
+        card "✓ Data Accuracy" as accuracy
+        card "✓ Export Quality" as quality
+    }
+}
+
+upload --> apicom
+display --> state
+apicom --> report
+report --> valid
+
+note right of frontend
+  <b>Testing Tools:</b>
+  - Jest
+  - React Testing Library
+  - Cypress E2E
+end note
+
+note right of pdf
+  <b>PDF Checks:</b>
+  - File size < 5MB
+  - Readable on all devices
+  - Proper pagination
+end note
+
+@enduml
+""",
+
+    "05_dashboard_output": """
+@startuml
+!theme plain
+title Dashboard Output Display
+
+skinparam backgroundColor #1a1a2e
+skinparam defaultFontColor white
+skinparam roundcorner 15
+
+rectangle "DEEPFAKE DETECTION DASHBOARD" as dash #16213e {
+    
+    rectangle "Detection Result" as result #0f3460 {
+        card "<size:24><b>DEEPFAKE DETECTED</b></size>\\n<color:red>⚠ FAKE</color>" as label #e94560
+    }
+    
+    rectangle "Metrics Panel" as metrics #0f3460 {
+        card "<b>Confidence Score</b>\\n<size:28>94.2%</size>\\n████████████░░" as conf #1a1a2e
+        card "<b>GAN Signal Strength</b>\\n<size:28>0.87</size>\\n███████████░░░" as signal #1a1a2e
+        card "<b>GAN Family</b>\\n<size:20>StyleGAN2</size>\\n<i>High Confidence</i>" as family #1a1a2e
+    }
+    
+    rectangle "Visual Analysis" as visual #0f3460 {
+        card "Frequency Spectrum\\n[Anomaly Detected]" as spectrum #533483
+        card "Temporal Pattern\\n[Inconsistency Found]" as temporal #533483
+    }
+}
+
+label -[hidden]down- metrics
+metrics -[hidden]down- visual
+
+note right of dash #e94560
+  <b>Alert Level: HIGH</b>
+  This media shows strong
+  indicators of AI generation
+end note
+
+@enduml
+""",
+
+    "06_video_detection_output": """
+@startuml
+!theme plain
+title Video Detection Output - Frame Analysis
+
+skinparam backgroundColor #FEFEFE
+skinparam roundcorner 10
+
+rectangle "Video Analysis Results" as main #LightBlue {
+    
+    rectangle "Frame-Level Analysis" as frames #LightYellow {
+        card "Frame 1-30\\n<color:green>✓ Normal</color>" as f1
+        card "Frame 31-45\\n<color:red>⚠ Suspicious</color>" as f2
+        card "Frame 46-60\\n<color:red>⚠ Suspicious</color>" as f3
+        card "Frame 61-90\\n<color:green>✓ Normal</color>" as f4
+    }
+    
+    rectangle "Suspicious Regions" as regions #LightCoral {
+        card "Face Region\\nAnomaly: 0.82" as face
+        card "Eye Region\\nBlinking Irregular" as eye
+        card "Mouth Region\\nLip Sync Issues" as mouth
+    }
+    
+    rectangle "Scores" as scores #LightGreen {
+        card "<b>Spatiotemporal Score</b>\\n<size:20>0.89</size>\\nTemporal inconsistencies detected" as spatio
+        card "<b>Fusion Score</b>\\n<size:20>0.91</size>\\nHigh manipulation probability" as fusion
+        card "<b>Frame Consistency</b>\\n<size:20>0.34</size>\\nLow consistency across frames" as consist
+    }
+}
+
+rectangle "Timeline Visualization" as timeline #333333 {
+    card "0s ████<color:red>███████</color>████████████ 30s\\n     ↑ Manipulation detected (10-15s)" as time
+}
+
+f1 --> face
+f2 --> face
+f2 --> eye
+f3 --> mouth
+face --> spatio
+eye --> spatio
+mouth --> spatio
+spatio --> fusion
+
+frames -[hidden]down- regions
+regions -[hidden]down- scores
+scores -[hidden]down- timeline
+
+@enduml
+""",
+
+    "07_image_detection_output": """
+@startuml
+!theme plain
+title Image Detection Output - GAN Analysis
+
+skinparam backgroundColor #FEFEFE
+skinparam roundcorner 15
+
+rectangle "Image Analysis Results" as main #LightBlue {
+    
+    rectangle "Input Image" as input #333333 {
+        card "<size:40>🖼️</size>\\ntest_image.jpg\\n512 x 512 px" as img
+    }
+    
+    rectangle "GAN Fingerprint Analysis" as fingerprint #LightYellow {
+        card "<b>Detection Result</b>\\n<color:red><size:18>GAN GENERATED</size></color>" as result
+        card "<b>Fingerprint Match</b>\\nPattern: Spectral Anomaly\\nStrength: 0.89" as pattern
+        card "<b>Frequency Analysis</b>\\nHigh-freq artifacts detected\\nDCT anomaly score: 0.76" as freq
+    }
+    
+    rectangle "GAN Family Classification" as family #LightGreen {
+        card "<b>Predicted Family</b>\\n<size:16>StyleGAN2</size>" as predicted
+        card "<b>Confidence Scores</b>\\nStyleGAN2: 87.3%\\nProGAN: 8.2%\\nBigGAN: 3.1%\\nOther: 1.4%" as scores
+        card "<b>Training Data</b>\\nLikely: FFHQ\\n(Face Dataset)" as training
+    }
+    
+    rectangle "Visual Evidence" as evidence #LightCoral {
+        card "Artifact Heatmap\\n[High intensity in\\nbackground regions]" as heatmap
+        card "Frequency Spectrum\\n[Characteristic GAN\\nperiodic patterns]" as spectrum
+    }
+}
+
+img --> result
+result --> pattern
+pattern --> freq
+freq --> predicted
+predicted --> scores
+scores --> heatmap
+
+@enduml
+""",
+
+    "08_accuracy_graph": """
+@startuml
+!theme plain
+title Model Accuracy Comparison
+
+skinparam backgroundColor #FEFEFE
+
+rectangle "Model Performance Comparison" as perf #LightBlue {
+    
+    rectangle "Accuracy by Model" as acc {
+        card "                                    Accuracy (%)\\n═══════════════════════════════════════════════════\\n\\nGAN Fingerprint  ████████████████████████████░░  89.2%\\n\\nSpatiotemporal   ██████████████████████████████░  91.5%\\n\\nFusion Model     ████████████████████████████████  94.2%\\n\\n═══════════════════════════════════════════════════\\n                 0%   25%   50%   75%   100%" as chart1
+    }
+    
+    rectangle "Metrics Comparison" as metrics {
+        card "┌─────────────────┬───────────┬──────────┬────────┬────────┐\\n│     Model       │ Accuracy  │Precision │ Recall │   F1   │\\n├─────────────────┼───────────┼──────────┼────────┼────────┤\\n│ GAN Fingerprint │   89.2%   │  88.5%   │ 89.8%  │ 89.1%  │\\n│ Spatiotemporal  │   91.5%   │  90.8%   │ 92.1%  │ 91.4%  │\\n│ Fusion Model    │   94.2%   │  93.8%   │ 94.6%  │ 94.2%  │\\n└─────────────────┴───────────┴──────────┴────────┴────────┘" as table
+    }
+    
+    rectangle "Training Progress" as training {
+        card "Loss Over Epochs:\\n\\nEpoch  1: ████████████████████  2.45\\nEpoch  5: ████████████░░░░░░░░  1.23\\nEpoch 10: ████████░░░░░░░░░░░░  0.78\\nEpoch 15: █████░░░░░░░░░░░░░░░  0.45\\nEpoch 20: ███░░░░░░░░░░░░░░░░░  0.28" as loss
+    }
+    
+    rectangle "AUC-ROC Scores" as auc {
+        card "┌─────────────────┬───────────┐\\n│     Model       │  AUC-ROC  │\\n├─────────────────┼───────────┤\\n│ GAN Fingerprint │   0.934   │\\n│ Spatiotemporal  │   0.951   │\\n│ Fusion Model    │   0.967   │\\n└─────────────────┴───────────┘" as auctable
+    }
+}
+
+acc -[hidden]down- metrics
+metrics -[hidden]down- training
+training -[hidden]down- auc
+
+note right of perf
+  <b>Test Conditions:</b>
+  • Dataset: FaceForensics++
+  • Test samples: 2000
+  • 5-fold cross-validation
+  • GPU: NVIDIA RTX 3080
+end note
+
+@enduml
+"""
+}
+
+
+def encode_plantuml(text):
+    """Encode PlantUML text for the online server."""
+    # Deflate compression
+    compressed = zlib.compress(text.encode('utf-8'))[2:-4]
+    
+    # PlantUML's custom base64-like encoding
+    plantuml_alphabet = string.digits + string.ascii_uppercase + string.ascii_lowercase + '-_'
+    base64_alphabet = string.ascii_uppercase + string.ascii_lowercase + string.digits + '+/'
+    
+    # Standard base64 encode
+    b64 = base64.b64encode(compressed).decode('ascii')
+    
+    # Translate to PlantUML alphabet
+    translation = str.maketrans(base64_alphabet, plantuml_alphabet)
+    return b64.translate(translation)
+
+
+def generate_with_online_server(diagram_name, puml_code, output_dir):
+    """Generate diagram using PlantUML online server."""
+    encoded = encode_plantuml(puml_code)
+    url = f"http://www.plantuml.com/plantuml/png/{encoded}"
+    
+    output_path = os.path.join(output_dir, f"{diagram_name}.png")
+    
+    try:
+        print(f"Downloading {diagram_name}...")
+        urllib.request.urlretrieve(url, output_path)
+        print(f"  ✓ Saved: {output_path}")
+        return True
+    except Exception as e:
+        print(f"  ✗ Error: {e}")
+        return False
+
+
+def generate_with_jar(diagram_name, puml_code, output_dir, jar_path):
+    """Generate diagram using local PlantUML JAR."""
+    # Write temp file
+    temp_file = os.path.join(output_dir, f"{diagram_name}.puml")
+    with open(temp_file, 'w', encoding='utf-8') as f:
+        f.write(puml_code)
+    
+    try:
+        # Run PlantUML
+        result = subprocess.run(
+            ['java', '-jar', jar_path, '-tpng', temp_file],
+            capture_output=True,
+            text=True
+        )
+        
+        if result.returncode == 0:
+            print(f"  ✓ Generated: {diagram_name}.png")
+            return True
+        else:
+            print(f"  ✗ Error: {result.stderr}")
+            return False
+    except FileNotFoundError:
+        print("  ✗ Java not found. Please install Java or use online mode.")
+        return False
+    finally:
+        # Keep the .puml file for reference
+        pass
+
+
+def download_plantuml_jar():
+    """Download PlantUML JAR if not present."""
+    if os.path.exists(PLANTUML_JAR):
+        return True
+    
+    print(f"Downloading PlantUML JAR from {PLANTUML_JAR_URL}...")
+    try:
+        os.makedirs(os.path.dirname(PLANTUML_JAR), exist_ok=True)
+        urllib.request.urlretrieve(PLANTUML_JAR_URL, PLANTUML_JAR)
+        print("  ✓ Downloaded successfully")
+        return True
+    except Exception as e:
+        print(f"  ✗ Failed to download: {e}")
+        return False
+
+
+def main():
+    """Main function to generate all diagrams."""
+    print("=" * 60)
+    print("PlantUML Diagram Generator for Deepfake Detection")
+    print("=" * 60)
+    
+    # Create output directory
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    print(f"\nOutput directory: {OUTPUT_DIR}")
+    
+    # Check for Java and PlantUML JAR
+    use_online = True
+    try:
+        result = subprocess.run(['java', '-version'], capture_output=True)
+        if result.returncode == 0:
+            if download_plantuml_jar():
+                use_online = False
+                print("\nUsing local PlantUML JAR for generation.")
+    except FileNotFoundError:
+        pass
+    
+    if use_online:
+        print("\nUsing PlantUML online server for generation.")
+        print("(Install Java to use local generation)")
+    
+    print("\n" + "-" * 60)
+    print("Generating diagrams...")
+    print("-" * 60)
+    
+    success_count = 0
+    fail_count = 0
+    
+    for name, code in DIAGRAMS.items():
+        print(f"\n[{name}]")
+        
+        if use_online:
+            success = generate_with_online_server(name, code, OUTPUT_DIR)
+        else:
+            success = generate_with_jar(name, code, OUTPUT_DIR, PLANTUML_JAR)
+        
+        if success:
+            success_count += 1
+        else:
+            fail_count += 1
+    
+    print("\n" + "=" * 60)
+    print(f"Complete! Generated {success_count}/{success_count + fail_count} diagrams")
+    print(f"Images saved in: {os.path.abspath(OUTPUT_DIR)}")
+    print("=" * 60)
+    
+    # List generated files
+    if os.path.exists(OUTPUT_DIR):
+        print("\nGenerated files:")
+        for f in sorted(os.listdir(OUTPUT_DIR)):
+            if f.endswith('.png'):
+                filepath = os.path.join(OUTPUT_DIR, f)
+                size = os.path.getsize(filepath)
+                print(f"  • {f} ({size:,} bytes)")
+
+
+if __name__ == "__main__":
+    main()

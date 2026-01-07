@@ -1,0 +1,49 @@
+@startuml Database_Testing
+!theme plain
+title Database Testing - Dataset Validation & I/O Verification
+
+skinparam backgroundColor #FEFEFE
+skinparam roundcorner 10
+skinparam BoxPadding 20
+
+package "Dataset Validation" {
+    rectangle "Input Data" as input #LightBlue {
+        card "Video Files\n(.mp4, .avi)" as video
+        card "Image Files\n(.jpg, .png)" as image
+        card "Metadata\n(.csv, .json)" as meta
+    }
+    
+    rectangle "Validation Checks" as validation #LightYellow {
+        card "✓ File Format Check" as fmt
+        card "✓ Resolution Check\n(min 224x224)" as res
+        card "✓ Frame Count Check\n(min 16 frames)" as frame
+        card "✓ Label Integrity\n(real/fake)" as label
+        card "✓ Dataset Split\n(train/val/test)" as split
+    }
+    
+    rectangle "Output Verification" as output #LightGreen {
+        card "Preprocessed Tensors\n(batch, channels, H, W)" as tensor
+        card "Data Loaders\n(PyTorch DataLoader)" as loader
+        card "Augmented Samples" as aug
+    }
+}
+
+video --> fmt
+image --> fmt
+meta --> label
+fmt --> res
+res --> frame
+frame --> split
+split --> tensor
+split --> loader
+label --> aug
+
+note right of validation
+  <b>Test Cases:</b>
+  - Corrupt file handling
+  - Missing label detection
+  - Duplicate removal
+  - Class balance check
+end note
+
+@enduml

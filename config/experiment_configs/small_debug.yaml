@@ -1,0 +1,46 @@
+# Small Debug Configuration
+# For quick testing and debugging on limited hardware
+# Inherits from default_config.yaml with overrides
+
+# Dataset - use small subset
+dataset:
+  max_samples: 50  # Only 50 samples for quick testing
+
+# Preprocessing - fewer frames
+preprocessing:
+  max_frames: 16
+  min_frames: 4
+  image_size: 128  # Smaller images
+
+# Smaller models
+spatiotemporal_model:
+  backbone: "resnet18"
+  hidden_size: 128
+  num_layers: 1
+  bidirectional: false
+  dropout: 0.2
+
+gan_fingerprint_model:
+  backbone: "resnet18"  # Smaller than efficientnet
+  feature_dim: 128
+  dropout: 0.2
+
+fusion_model:
+  hidden_dims: [16, 8]
+
+# Training - quick iterations
+training:
+  epochs: 5
+  batch_size: 4
+  val_batch_size: 8
+  num_workers: 0  # No multiprocessing for debugging
+  mixed_precision: false
+  early_stopping_patience: 3
+
+# Disable heavy visualizations
+inference:
+  generate_heatmaps: false
+  
+logging:
+  level: "DEBUG"
+

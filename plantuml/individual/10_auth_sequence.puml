@@ -1,0 +1,99 @@
+@startuml Authentication Flow Sequence
+
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam sequenceMessageAlign center
+
+title Authentication Flow - Register, Login & Detection with History
+
+actor User as U
+participant "React Frontend" as FE #FFE0B2
+participant "AuthContext" as AC #FFF9C4
+participant "localStorage" as LS #FFECB3
+participant "Flask API" as API #BBDEFB
+database "SQLite DB" as DB #E8F5E9
+
+== User Registration ==
+
+U -> FE : Click "Create Account"
+FE -> FE : Navigate to RegisterPage
+U -> FE : Enter email & password
+FE -> API : POST /auth/register\n{email, password}
+API -> API : Validate input
+API -> API : Hash password (bcrypt)
+API -> DB : INSERT User
+DB --> API : User created
+API -> API : Generate JWT token
+API --> FE : 201 {user, access_token}
+FE -> AC : setAxiosAuthHeader(token)
+FE -> LS : Store auth_token
+FE -> AC : setUser(userData)
+FE -> FE : Navigate to HomePage
+
+== User Login (Returning User) ==
+
+U -> FE : Click "Sign In"
+FE -> FE : Navigate to LoginPage
+U -> FE : Enter email & password
+FE -> API : POST /auth/login\n{email, password}
+API -> DB : SELECT User by email
+DB --> API : User record
+API -> API : Verify password (bcrypt)
+API -> API : Generate JWT token
+API --> FE : 200 {user, access_token}
+FE -> AC : setAxiosAuthHeader(token)
+FE -> LS : Store auth_token
+FE -> AC : setUser(userData)
+FE -> FE : Navigate to HomePage
+
+== Page Refresh (Token Validation) ==
+
+U -> FE : Refresh page
+FE -> LS : Get auth_token
+LS --> FE : token (if exists)
+FE -> AC : setAxiosAuthHeader(token)
+FE -> API : GET /auth/me\n(Authorization: Bearer token)
+API -> API : Verify JWT
+API -> DB : SELECT User by id
+DB --> API : User record
+API --> FE : 200 {user}
+FE -> AC : setUser(userData)
+
+== Fetch History (Authenticated) ==
+
+FE -> API : GET /history\n(Authorization: Bearer token)
+API -> API : Verify JWT
+API -> DB : SELECT AnalysisHistory\nWHERE user_id = ?
+DB --> API : History records
+API --> FE : 200 {history[], total, pages}
+FE -> FE : Display history in dashboard
+
+== Detection with Auto-Save ==
+
+U -> FE : Upload image/video
+FE -> API : POST /detect/image\n(Authorization: Bearer token)
+API -> API : Verify JWT (optional)
+API -> API : Run detection pipeline
+API -> API : Get detection result
+alt User is authenticated
+    API -> DB : INSERT AnalysisHistory
+    DB --> API : Record saved
+end
+API --> FE : 200 {label, confidence, details}
+FE -> FE : Show results
+alt User is authenticated
+    FE -> API : GET /history (refresh)
+    API --> FE : Updated history
+end
+
+== User Logout ==
+
+U -> FE : Click "Logout"
+FE -> AC : logout()
+AC -> LS : Remove auth_token
+AC -> AC : Clear axios header
+AC -> AC : setUser(null)
+FE -> FE : Navigate to HomePage
+
+@enduml
+

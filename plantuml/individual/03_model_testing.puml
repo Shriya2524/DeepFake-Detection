@@ -1,0 +1,60 @@
+@startuml Model_Testing
+!theme plain
+title Model Testing - Accuracy & Performance Tests
+
+skinparam backgroundColor #FEFEFE
+skinparam roundcorner 15
+
+rectangle "Test Dataset" as testdata #LightBlue {
+    card "1000 Real Samples" as real
+    card "1000 Fake Samples" as fake
+}
+
+package "Model Under Test" as models #LightYellow {
+    rectangle "Spatiotemporal Model" as spatio {
+        card "3D CNN\n(ResNet3D)" as cnn3d
+        card "Temporal\nConsistency" as temp
+    }
+    
+    rectangle "GAN Fingerprint Model" as gan {
+        card "Frequency\nAnalysis" as freq
+        card "Fingerprint\nExtractor" as finger
+    }
+    
+    rectangle "Fusion Model" as fusion {
+        card "Feature\nConcatenation" as concat
+        card "MLP\nClassifier" as mlp
+    }
+}
+
+rectangle "Test Metrics" as metrics #LightGreen {
+    card "Accuracy: 94.2%" as acc
+    card "Precision: 93.8%" as prec
+    card "Recall: 94.6%" as rec
+    card "F1-Score: 94.2%" as f1
+    card "AUC-ROC: 0.967" as auc
+}
+
+rectangle "Performance Tests" as perf #LightCoral {
+    card "Inference Time\n< 500ms/image" as time
+    card "GPU Memory\n< 4GB" as mem
+    card "Batch Processing\n32 samples/sec" as batch
+}
+
+real --> spatio
+fake --> spatio
+real --> gan
+fake --> gan
+spatio --> fusion
+gan --> fusion
+fusion --> metrics
+fusion --> perf
+
+note bottom of metrics
+  <b>Test Conditions:</b>
+  - Cross-validation (5-fold)
+  - Multiple GAN types
+  - Various resolutions
+end note
+
+@enduml

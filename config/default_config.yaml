@@ -1,0 +1,196 @@
+# Deepfake Detection - Default Configuration
+# ============================================
+
+# General Settings
+project_name: "deepfake_detection"
+seed: 42
+device: "auto"  # "auto", "cuda", "cpu"
+
+# Dataset Configuration
+dataset:
+  name: "faceforensics"  # faceforensics, celeb_df, dfdc, custom
+  root_path: "data/"
+  
+  # Video settings
+  video_extensions: [".mp4", ".avi", ".mov", ".mkv"]
+  image_extensions: [".jpg", ".jpeg", ".png", ".bmp"]
+  
+  # Train/Val/Test split ratios
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  
+  # Subset for quick experiments (null = use all)
+  max_samples: null  # Set to integer for debugging (e.g., 100)
+  
+  # Class mapping
+  classes:
+    real: 0
+    fake: 1
+
+# Preprocessing Configuration
+preprocessing:
+  # Frame extraction
+  target_fps: 10
+  max_frames: 16  # Reduced for 4GB GPU (was 32)
+  min_frames: 8   # Minimum frames required
+  
+  # Face detection
+  face_detector: "mediapipe"  # mediapipe, opencv_haar
+  face_confidence_threshold: 0.5
+  face_padding: 0.2  # Padding around detected face (20%)
+  
+  # Image size
+  image_size: 224
+  
+  # Optical flow
+  optical_flow:
+    method: "farneback"  # farneback, lucas_kanade
+    pyr_scale: 0.5
+    levels: 3
+    winsize: 15
+    iterations: 3
+    poly_n: 5
+    poly_sigma: 1.2
+  
+  # Frequency analysis
+  frequency:
+    dct_size: 224
+    high_freq_threshold: 0.3  # Keep top 30% frequencies
+
+# Data Augmentation
+augmentation:
+  enabled: true
+  # Training augmentations
+  train:
+    horizontal_flip: 0.5
+    rotation_limit: 15
+    brightness_limit: 0.2
+    contrast_limit: 0.2
+    gaussian_noise: 0.1
+    jpeg_compression: [70, 100]
+  # Validation/Test - minimal augmentation
+  val:
+    horizontal_flip: 0.0
+
+# Spatiotemporal Model Configuration
+spatiotemporal_model:
+  # CNN Backbone
+  backbone: "resnet18"  # resnet18, resnet34, efficientnet_b0
+  backbone_pretrained: true
+  backbone_freeze_layers: 0  # Number of layers to freeze (0 = none)
+  feature_dim: 512
+  
+  # Temporal model
+  temporal_type: "lstm"  # lstm, gru, transformer
+  hidden_size: 256
+  num_layers: 2
+  bidirectional: true
+  dropout: 0.3
+  
+  # Optical flow branch
+  use_optical_flow: true
+  flow_channels: 2  # x, y flow
+  
+  # Classification head
+  num_classes: 2
+
+# GAN Fingerprint Model Configuration
+gan_fingerprint_model:
+  backbone: "efficientnet_b0"  # resnet18, efficientnet_b0, efficientnet_b1
+  backbone_pretrained: true
+  
+  # Multi-channel input
+  use_ycbcr: true
+  use_frequency: true
+  use_edge_features: true
+  
+  # Input channels: RGB(3) + CbCr(2) + DCT(1) + Sobel(2) + Laplacian(1) = 9
+  input_channels: 9
+  
+  # Classification
+  feature_dim: 256
+  dropout: 0.4
+  num_classes: 2
+
+# Fusion Model Configuration
+fusion_model:
+  input_features: 5  # [p_video, mean_p_image, std_p_image, max_p_image, min_p_image]
+  hidden_dims: [32, 16]
+  dropout: 0.3
+  num_classes: 2
+
+# Training Configuration
+training:
+  # General
+  epochs: 50
+  early_stopping_patience: 10
+  
+  # Batch sizes
+  batch_size: 4
+  val_batch_size: 4  # Reduced for 4GB GPU
+  
+  # Number of workers for data loading
+  num_workers: 0  # Set to 0 for Windows compatibility with OpenCV
+  pin_memory: false  # Disabled to save GPU memory
+  
+  # Optimizer
+  optimizer: "adamw"  # adam, adamw, sgd
+  learning_rate: 0.0001
+  weight_decay: 0.01
+  
+  # Learning rate scheduler
+  scheduler: "cosine"  # cosine, step, plateau
+  scheduler_params:
+    T_max: 50  # for cosine
+    eta_min: 0.000001
+  
+  # Gradient clipping
+  gradient_clip: 1.0
+  
+  # Mixed precision training
+  mixed_precision: true
+  
+  # Checkpoint saving
+  save_best_only: true
+  save_frequency: 5  # Save every N epochs
+
+# Inference Configuration  
+inference:
+  # Detection threshold
+  threshold: 0.5
+  
+  # Batch processing
+  batch_size: 1
+  
+  # Visualization
+  generate_heatmaps: true
+  save_visualizations: true
+  output_dir: "outputs/inference/"
+
+# Evaluation Configuration
+evaluation:
+  # Metrics to compute
+  metrics: ["accuracy", "precision", "recall", "f1", "roc_auc"]
+  
+  # Visualization
+  plot_confusion_matrix: true
+  plot_roc_curve: true
+  plot_precision_recall_curve: true
+  
+  # Output
+  output_dir: "outputs/evaluation/"
+
+# Logging Configuration
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  log_dir: "outputs/logs/"
+  tensorboard: true
+  tensorboard_dir: "outputs/tensorboard/"
+
+# Paths
+paths:
+  checkpoints: "checkpoints/"
+  outputs: "outputs/"
+  cache: ".cache/"
+

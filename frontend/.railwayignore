@@ -1,0 +1,9 @@
+# Ignore everything except frontend files
+*.py
+*.txt
+!package.json
+__pycache__/
+*.pyc
+Procfile
+runtime.txt
+requirements.txt

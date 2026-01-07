@@ -1,0 +1,49 @@
+@startuml API_Endpoints_Testing
+!theme plain
+title API Endpoints Testing
+
+skinparam backgroundColor #FEFEFE
+skinparam actorStyle awesome
+
+actor "Client" as client #LightBlue
+participant "FastAPI Server" as api #LightGreen
+database "Models" as models #LightYellow
+database "Results" as results #LightCoral
+
+== Health Check ==
+client -> api : GET /health
+api --> client : {"status": "healthy", "models_loaded": true}
+
+== Get Available Models ==
+client -> api : GET /models
+api -> models : Query loaded models
+models --> api : Model list
+api --> client : {"models": ["fusion", "gan_fingerprint", "spatiotemporal"]}
+
+== Video Detection ==
+client -> api : POST /detect/video
+note right: multipart/form-data\nfile: video.mp4
+api -> models : Load video frames
+api -> models : Run spatiotemporal analysis
+api -> models : Run GAN fingerprint
+api -> models : Fusion prediction
+models --> api : Detection results
+api -> results : Store results
+api --> client : {"prediction": "fake",\n"confidence": 0.94,\n"fusion_score": 0.89}
+
+== Image Detection ==
+client -> api : POST /detect/image
+note right: multipart/form-data\nfile: image.jpg
+api -> models : Run GAN fingerprint
+api -> models : GAN family classification
+models --> api : Detection results
+api --> client : {"prediction": "fake",\n"gan_family": "StyleGAN",\n"confidence": 0.87}
+
+note over api
+  <b>Response Codes:</b>
+  200 - Success
+  400 - Invalid input
+  500 - Server error
+end note
+
+@enduml

@@ -1,0 +1,36 @@
+@startuml Dashboard_Output
+!theme plain
+title Dashboard Output Display
+
+skinparam backgroundColor #1a1a2e
+skinparam defaultFontColor white
+skinparam roundcorner 15
+
+rectangle "DEEPFAKE DETECTION DASHBOARD" as dash #16213e {
+    
+    rectangle "Detection Result" as result #0f3460 {
+        card "<size:24><b>DEEPFAKE DETECTED</b></size>\n<color:red>⚠ FAKE</color>" as label #e94560
+    }
+    
+    rectangle "Metrics Panel" as metrics #0f3460 {
+        card "<b>Confidence Score</b>\n<size:28>94.2%</size>\n████████████░░" as conf #1a1a2e
+        card "<b>GAN Signal Strength</b>\n<size:28>0.87</size>\n███████████░░░" as signal #1a1a2e
+        card "<b>GAN Family</b>\n<size:20>StyleGAN2</size>\n<i>High Confidence</i>" as family #1a1a2e
+    }
+    
+    rectangle "Visual Analysis" as visual #0f3460 {
+        card "Frequency Spectrum\n[Anomaly Detected]" as spectrum #533483
+        card "Temporal Pattern\n[Inconsistency Found]" as temporal #533483
+    }
+}
+
+label -[hidden]down- metrics
+metrics -[hidden]down- visual
+
+note right of dash #e94560
+  <b>Alert Level: HIGH</b>
+  This media shows strong
+  indicators of AI generation
+end note
+
+@enduml

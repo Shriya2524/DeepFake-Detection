@@ -1,0 +1,30 @@
+# Ignore data and training directories
+data/
+stylegan/
+archive/
+cyclegan/
+outputs/
+plantuml/
+test_scripts/
+tests/
+notebooks/
+Photo_Detector/
+ui/
+
+# Frontend (deployed separately)
+frontend/
+
+# Exclude all checkpoint files (models will be downloaded at runtime)
+checkpoints/
+
+# Config experiments
+config/experiment_configs/
+
+# Other
+*.zip
+*.tar.gz
+node_modules/
+__pycache__/
+*.pyc
+.git/
+*.egg-info/

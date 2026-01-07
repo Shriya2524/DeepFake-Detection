@@ -1,0 +1,39 @@
+@startuml Image_Detection_Output
+!theme plain
+title Image Detection Output - GAN Analysis
+
+skinparam backgroundColor #FEFEFE
+skinparam roundcorner 15
+
+rectangle "Image Analysis Results" as main #LightBlue {
+    
+    rectangle "Input Image" as input #333333 {
+        card "<size:40>🖼️</size>\ntest_image.jpg\n512 x 512 px" as img
+    }
+    
+    rectangle "GAN Fingerprint Analysis" as fingerprint #LightYellow {
+        card "<b>Detection Result</b>\n<color:red><size:18>GAN GENERATED</size></color>" as result
+        card "<b>Fingerprint Match</b>\nPattern: Spectral Anomaly\nStrength: 0.89" as pattern
+        card "<b>Frequency Analysis</b>\nHigh-freq artifacts detected\nDCT anomaly score: 0.76" as freq
+    }
+    
+    rectangle "GAN Family Classification" as family #LightGreen {
+        card "<b>Predicted Family</b>\n<size:16>StyleGAN2</size>" as predicted
+        card "<b>Confidence Scores</b>\nStyleGAN2: 87.3%\nProGAN: 8.2%\nBigGAN: 3.1%\nOther: 1.4%" as scores
+        card "<b>Training Data</b>\nLikely: FFHQ\n(Face Dataset)" as training
+    }
+    
+    rectangle "Visual Evidence" as evidence #LightCoral {
+        card "Artifact Heatmap\n[High intensity in\nbackground regions]" as heatmap
+        card "Frequency Spectrum\n[Characteristic GAN\nperiodic patterns]" as spectrum
+    }
+}
+
+img --> result
+result --> pattern
+pattern --> freq
+freq --> predicted
+predicted --> scores
+scores --> heatmap
+
+@enduml

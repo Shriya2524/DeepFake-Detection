@@ -1,0 +1,17 @@
+# Force Node.js detection
+providers = ["node"]
+
+[phases.setup]
+nixPkgs = ["nodejs_20", "npm"]
+
+[phases.install]
+cmds = ["npm ci || npm install"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npx serve -s dist -l $PORT"
+
+[variables]
+NODE_ENV = "production"

@@ -1,0 +1,64 @@
+@startuml Frontend_PDF_Testing
+!theme plain
+title Frontend & PDF Report Testing
+
+skinparam backgroundColor #FEFEFE
+skinparam roundcorner 10
+
+package "Frontend Testing" as frontend #LightBlue {
+    rectangle "Component Tests" as comp {
+        card "File Upload\nComponent" as upload
+        card "Results Display\nComponent" as display
+        card "Progress Bar\nComponent" as progress
+        card "Chart\nVisualization" as chart
+    }
+    
+    rectangle "Integration Tests" as integ {
+        card "API Communication" as apicom
+        card "State Management" as state
+        card "Error Handling" as error
+    }
+    
+    rectangle "UI/UX Tests" as uiux {
+        card "Responsive Design" as resp
+        card "Loading States" as load
+        card "User Feedback" as feed
+    }
+}
+
+package "PDF Report Testing" as pdf #LightGreen {
+    rectangle "Report Generation" as report {
+        card "Header & Logo" as header
+        card "Detection Summary" as summary
+        card "Detailed Results" as detail
+        card "Confidence Charts" as charts
+    }
+    
+    rectangle "Validation" as valid {
+        card "✓ Correct Formatting" as format
+        card "✓ Image Embedding" as embed
+        card "✓ Data Accuracy" as accuracy
+        card "✓ Export Quality" as quality
+    }
+}
+
+upload --> apicom
+display --> state
+apicom --> report
+report --> valid
+
+note right of frontend
+  <b>Testing Tools:</b>
+  - Jest
+  - React Testing Library
+  - Cypress E2E
+end note
+
+note right of pdf
+  <b>PDF Checks:</b>
+  - File size < 5MB
+  - Readable on all devices
+  - Proper pagination
+end note
+
+@enduml

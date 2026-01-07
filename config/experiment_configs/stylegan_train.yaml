@@ -1,0 +1,54 @@
+# StyleGAN Training Configuration
+# For training on the StyleGAN/StyleGAN2 combined dataset
+
+# Dataset paths
+dataset:
+  root_path: "stylegan/Final Dataset"
+  max_samples: 2000  # Limit samples for faster training (set to null for full dataset)
+  train_ratio: 0.8
+  val_ratio: 0.1
+  test_ratio: 0.1
+  image_extensions: [".jpg", ".jpeg", ".png"]
+
+# Preprocessing
+preprocessing:
+  image_size: 224
+  max_frames: 1
+  min_frames: 1
+
+# GAN Fingerprint model (suitable for StyleGAN detection)
+gan_fingerprint_model:
+  backbone: "efficientnet_b0"
+  feature_dim: 256
+  use_frequency: true
+  use_edge_features: true
+  use_ycbcr: true
+  dropout: 0.3
+
+# Training
+training:
+  epochs: 10
+  batch_size: 16
+  val_batch_size: 32
+  learning_rate: 0.0001
+  weight_decay: 0.0001
+  num_workers: 0  # Set to 0 for Windows
+  mixed_precision: false
+  early_stopping_patience: 5
+  save_best_only: true
+  optimizer: "adamw"
+  scheduler: "cosine"
+  gradient_clip: 1.0
+
+# Logging
+logging:
+  level: "INFO"
+  log_dir: "outputs/logs"
+
+# Paths
+paths:
+  checkpoints: "checkpoints"
+  outputs: "outputs"
+
+# Random seed
+seed: 42

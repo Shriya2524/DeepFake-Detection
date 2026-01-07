@@ -1,0 +1,33 @@
+@startuml
+title Auth and History System
+
+package "Database" {
+  [User Table] as User
+  [AnalysisHistory Table] as History
+  User --> History : has many
+}
+
+package "Flask API" {
+  [auth.py] as Auth
+  [history.py] as HistoryAPI  
+  [main.py] as Main
+}
+
+package "React Frontend" {
+  [AuthContext.tsx] as AC
+  [LoginPage.tsx] as Login
+  [RegisterPage.tsx] as Register
+  [App.tsx] as App
+}
+
+Login --> Auth : POST /auth/login
+Register --> Auth : POST /auth/register
+AC --> Auth : GET /auth/me
+App --> HistoryAPI : GET /history
+App --> Main : POST /detect
+
+Auth --> User : query
+HistoryAPI --> History : query
+Main --> History : auto-save
+
+@enduml

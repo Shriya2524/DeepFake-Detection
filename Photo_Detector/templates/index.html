@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Detector - AI vs Natural Images</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 AI Image Detector</h1>
+            <p class="subtitle">Detect whether an image is AI-generated or Natural</p>
+        </header>
+
+        <main>
+            <!-- Upload Tab -->
+            <div id="upload-tab" class="tab-content active">
+                <div class="upload-zone" id="dropZone">
+                    <input type="file" id="fileInput" accept="image/*" hidden>
+                    <div class="upload-icon">📁</div>
+                    <p class="upload-text">Drag & drop an image here or click to browse</p>
+                    <p class="upload-hint">Supports: JPG, PNG, GIF, WebP, BMP (max 50MB)</p>
+                </div>
+                <button class="btn btn-primary" id="uploadBtn" style="display:none;">Analyze Image</button>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loading" class="loading" style="display:none;">
+                <div class="spinner"></div>
+                <p>Analyzing image...</p>
+            </div>
+
+            <!-- Results Section -->
+            <div id="results" class="results" style="display:none;">
+                <div class="result-card">
+                    <div class="result-icon" id="resultIcon"></div>
+                    <h2 class="result-title" id="resultTitle"></h2>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="confidenceFill"></div>
+                    </div>
+                    <p class="confidence-text" id="confidenceText"></p>
+                    
+                    <div class="probabilities">
+                        <div class="prob-item">
+                            <span class="prob-label">🤖 AI Generated:</span>
+                            <span class="prob-value" id="aiProb"></span>
+                        </div>
+                        <div class="prob-item">
+                            <span class="prob-label">📸 Natural:</span>
+                            <span class="prob-value" id="naturalProb"></span>
+                        </div>
+                    </div>
+
+                    <!-- Multi-Check Analysis Details -->
+                    <div class="analysis-details" id="analysisDetails" style="display:none;">
+                        <h3 style="margin: 20px 0 10px; font-size: 1.2rem; color: var(--text-secondary);">
+                            📊 Detailed Analysis (5 Checks)
+                        </h3>
+                        <div class="votes-summary" id="votesSummary"></div>
+                        <div class="individual-checks" id="individualChecks"></div>
+                    </div>
+
+                    <button class="btn btn-info" id="toggleDetails" style="margin: 10px 0; background: #3b82f6;">
+                        Show Detailed Analysis
+                    </button>
+                    <button class="btn btn-secondary" id="analyzeAnother">Analyze Another Image</button>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <div id="error" class="error" style="display:none;">
+                <div class="error-icon">⚠️</div>
+                <p id="errorMessage"></p>
+                <button class="btn btn-secondary" id="dismissError">Try Again</button>
+            </div>
+        </main>
+
+        <footer>
+            <p>Powered by Deep Learning • Built with TensorFlow & Keras</p>
+        </footer>
+    </div>
+
+    <script>
+        // File upload handling
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        let selectedFile = null;
+
+        // Click to browse
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            
+            if (e.dataTransfer.files.length) {
+                handleFileSelect(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        function handleFileSelect(file) {
+            selectedFile = file;
+            dropZone.querySelector('.upload-text').textContent = `Selected: ${file.name}`;
+            uploadBtn.style.display = 'block';
+        }
+
+        uploadBtn.addEventListener('click', () => {
+            if (selectedFile) {
+                analyzeUpload(selectedFile);
+            }
+        });
+
+        // API calls
+        async function analyzeUpload(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            showLoading();
+
+            try {
+                const response = await fetch('/api/predict/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResults(data);
+                } else {
+                    showError(data.error || 'Failed to analyze image');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        }
+
+        // UI state management
+        function hideAllSections() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+        }
+
+        function showLoading() {
+            hideAllSections();
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function showResults(data) {
+            hideAllSections();
+            
+            const isAI = data.prediction === 'AI_generated';
+            const rawScore = data.final_score ? data.final_score * 100 : data.ai_probability * 100;
+            const confidence = data.confidence * 100;
+            
+            document.getElementById('resultIcon').textContent = isAI ? '🤖' : '📸';
+            document.getElementById('resultTitle').textContent = 
+                isAI ? 'AI Generated Image' : 'Natural Image';
+            
+            // Use raw score for bar width (more intuitive visualization)
+            // But show confidence in text
+            const barWidth = Math.max(5, Math.min(95, rawScore)); // Keep bar visible
+            document.getElementById('confidenceFill').style.width = `${barWidth}%`;
+            
+            // Color based on result type: Green for Natural, Red for AI
+            if (isAI) {
+                // AI Generated - Red shades based on confidence
+                if (confidence > 70) {
+                    document.getElementById('confidenceFill').style.backgroundColor = '#dc2626'; // Strong Red
+                } else if (confidence > 40) {
+                    document.getElementById('confidenceFill').style.backgroundColor = '#ef4444'; // Medium Red
+                } else {
+                    document.getElementById('confidenceFill').style.backgroundColor = '#f87171'; // Light Red
+                }
+            } else {
+                // Natural Image - Green shades based on confidence
+                if (confidence > 70) {
+                    document.getElementById('confidenceFill').style.backgroundColor = '#16a34a'; // Strong Green
+                } else if (confidence > 40) {
+                    document.getElementById('confidenceFill').style.backgroundColor = '#22c55e'; // Medium Green
+                } else {
+                    document.getElementById('confidenceFill').style.backgroundColor = '#4ade80'; // Light Green
+                }
+            }
+            
+            document.getElementById('confidenceText').textContent = 
+                `Confidence: ${confidence.toFixed(1)}%`;
+            
+            document.getElementById('aiProb').textContent = 
+                `${(data.ai_probability * 100).toFixed(1)}%`;
+            document.getElementById('naturalProb').textContent = 
+                `${(data.natural_probability * 100).toFixed(1)}%`;
+            
+            // Show detailed analysis if available
+            if (data.votes && data.individual_checks) {
+                const votes = data.votes;
+                const adaptiveThreshold = data.adaptive_threshold ? (data.adaptive_threshold * 100).toFixed(1) : '60.0';
+                const consensus = data.consensus ? (data.consensus * 100).toFixed(1) : '0';
+                const confidenceLevel = data.confidence_level || 'Medium';
+                
+                document.getElementById('votesSummary').innerHTML = `
+                    <div style="background: rgba(99, 102, 241, 0.1); padding: 15px; border-radius: 8px; margin: 10px 0;">
+                        <strong>Voting Results:</strong> ${votes.ai} checks said AI, ${votes.natural} said Natural (out of ${votes.total} total)
+                    </div>
+                    <div style="background: rgba(34, 197, 94, 0.1); padding: 15px; border-radius: 8px; margin: 10px 0; border-left: 3px solid #22c55e;">
+                        <div style="margin-bottom: 8px;">
+                            <strong>🎯 Adaptive Threshold:</strong> ${adaptiveThreshold}%
+                            <span style="color: var(--text-secondary); font-size: 0.9rem; margin-left: 10px;">(Auto-adjusted based on consensus)</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <strong>📊 Algorithm Consensus:</strong> ${consensus}%
+                            <span style="color: var(--text-secondary); font-size: 0.9rem; margin-left: 10px;">(How much algorithms agree)</span>
+                        </div>
+                        <div>
+                            <strong>⚡ Confidence Level:</strong> <span style="color: #22c55e;">${confidenceLevel}</span>
+                        </div>
+                    </div>
+                `;
+                
+                // Clear previous data first to prevent caching
+                const individualChecksDiv = document.getElementById('individualChecks');
+                individualChecksDiv.innerHTML = '';
+                
+                // Build fresh HTML with timestamp to force refresh
+                const timestamp = new Date().getTime();
+                let checksHTML = `<div style="margin-top: 15px;" data-analysis="${timestamp}">`;
+                
+                data.individual_checks.forEach((check, index) => {
+                    const icon = check.is_ai ? '🤖' : '📸';
+                    const result = check.is_ai ? 'AI-Generated' : 'Natural';
+                    const conf = (check.confidence * 100).toFixed(1);
+                    const score = (check.score * 100).toFixed(1);
+                    
+                    // Build details section with actual values from this check
+                    let detailsHTML = '';
+                    if (check.details) {
+                        detailsHTML = `<div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 5px;">${check.details}</div>`;
+                    } else if (check.freq_ratio !== undefined) {
+                        detailsHTML = `<div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 5px;">Freq ratio: ${check.freq_ratio.toFixed(2)} (higher=AI)</div>`;
+                    } else if (check.var_of_var !== undefined) {
+                        detailsHTML = `<div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 5px;">Noise uniformity: ${check.var_of_var.toFixed(2)} (higher=AI)</div>`;
+                    } else if (check.entropy !== undefined) {
+                        detailsHTML = `<div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 5px;">Color score: ${check.entropy.toFixed(2)} (higher=AI)</div>`;
+                    } else if (check.smoothness !== undefined) {
+                        detailsHTML = `<div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 5px;">Edge smoothness: ${check.smoothness.toFixed(2)} (higher=AI)</div>`;
+                    }
+                    
+                    checksHTML += `
+                        <div style="background: rgba(15, 23, 42, 0.5); padding: 12px; margin: 8px 0; border-radius: 6px; border-left: 3px solid ${check.is_ai ? '#ef4444' : '#22c55e'};" data-check="${index}">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                <strong>${icon} ${check.method}</strong>
+                                <span style="color: ${check.is_ai ? '#ef4444' : '#22c55e'};">${result}</span>
+                            </div>
+                            <div style="font-size: 0.9rem; color: var(--text-secondary);">
+                                Confidence: ${conf}% | Score: ${score}%
+                            </div>
+                            ${detailsHTML}
+                        </div>
+                    `;
+                });
+                checksHTML += '</div>';
+                
+                individualChecksDiv.innerHTML = checksHTML;
+                document.getElementById('analysisDetails').style.display = 'none';
+            }
+            
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function showError(message) {
+            hideAllSections();
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('error').style.display = 'block';
+        }
+
+        // Reset buttons
+        document.getElementById('analyzeAnother').addEventListener('click', () => {
+            hideAllSections();
+            selectedFile = null;
+            fileInput.value = '';
+            dropZone.querySelector('.upload-text').textContent = 
+                'Drag & drop an image here or click to browse';
+            uploadBtn.style.display = 'none';
+        });
+
+        document.getElementById('dismissError').addEventListener('click', () => {
+            hideAllSections();
+        });
+
+        // Toggle detailed analysis
+        document.getElementById('toggleDetails').addEventListener('click', () => {
+            const details = document.getElementById('analysisDetails');
+            const btn = document.getElementById('toggleDetails');
+            
+            if (details.style.display === 'none') {
+                details.style.display = 'block';
+                btn.textContent = 'Hide Detailed Analysis';
+            } else {
+                details.style.display = 'none';
+                btn.textContent = 'Show Detailed Analysis';
+            }
+        });
+    </script>
+</body>
+</html>

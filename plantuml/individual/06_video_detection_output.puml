@@ -1,0 +1,47 @@
+@startuml Video_Detection_Output
+!theme plain
+title Video Detection Output - Frame Analysis
+
+skinparam backgroundColor #FEFEFE
+skinparam roundcorner 10
+
+rectangle "Video Analysis Results" as main #LightBlue {
+    
+    rectangle "Frame-Level Analysis" as frames #LightYellow {
+        card "Frame 1-30\n<color:green>✓ Normal</color>" as f1
+        card "Frame 31-45\n<color:red>⚠ Suspicious</color>" as f2
+        card "Frame 46-60\n<color:red>⚠ Suspicious</color>" as f3
+        card "Frame 61-90\n<color:green>✓ Normal</color>" as f4
+    }
+    
+    rectangle "Suspicious Regions" as regions #LightCoral {
+        card "Face Region\nAnomaly: 0.82" as face
+        card "Eye Region\nBlinking Irregular" as eye
+        card "Mouth Region\nLip Sync Issues" as mouth
+    }
+    
+    rectangle "Scores" as scores #LightGreen {
+        card "<b>Spatiotemporal Score</b>\n<size:20>0.89</size>\nTemporal inconsistencies detected" as spatio
+        card "<b>Fusion Score</b>\n<size:20>0.91</size>\nHigh manipulation probability" as fusion
+        card "<b>Frame Consistency</b>\n<size:20>0.34</size>\nLow consistency across frames" as consist
+    }
+}
+
+rectangle "Timeline Visualization" as timeline #333333 {
+    card "0s ████<color:red>███████</color>████████████ 30s\n     ↑ Manipulation detected (10-15s)" as time
+}
+
+f1 --> face
+f2 --> face
+f2 --> eye
+f3 --> mouth
+face --> spatio
+eye --> spatio
+mouth --> spatio
+spatio --> fusion
+
+frames -[hidden]down- regions
+regions -[hidden]down- scores
+scores -[hidden]down- timeline
+
+@enduml

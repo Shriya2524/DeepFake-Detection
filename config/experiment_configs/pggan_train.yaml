@@ -1,0 +1,72 @@
+# PGGAN Training Configuration
+# Trains on PGGAN fake images + StyleGAN real images
+
+experiment_name: pggan_combined_training
+description: "Train GAN Fingerprint model on PGGAN fakes with StyleGAN real images"
+
+# Combined dataset configuration
+data:
+  # We'll use a custom multi-source dataset approach
+  # PGGAN fakes from archive + Real images from StyleGAN
+  datasets:
+    - path: "archive/pggan_v1/pggan_v1/train"
+      type: "fake_only"  # All files are fake
+    - path: "archive/pggan_v2/pggan_v2/train"
+      type: "fake_only"  # All files are fake
+    - path: "stylegan/Final Dataset/Real"
+      type: "real_only"  # Real images from StyleGAN dataset
+  
+  # Single dataset fallback (will use combined approach in script)
+  root: "stylegan/Final Dataset"
+  
+  # Split ratios
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  
+  # Limit samples per source for balanced training
+  max_samples: 4000  # Total samples to use
+  
+  # Preprocessing
+  image_size: 224
+  normalize: true
+
+# Model configuration
+model:
+  name: gan_fingerprint
+  backbone: resnet18
+  pretrained: true
+  num_classes: 2
+  
+# Training settings
+training:
+  epochs: 10
+  batch_size: 16
+  learning_rate: 0.0001
+  weight_decay: 0.0001
+  scheduler: cosine
+  
+  # Optimizer
+  optimizer: adam
+  
+  # Early stopping
+  early_stopping:
+    patience: 5
+    min_delta: 0.001
+
+# Checkpointing
+checkpoints:
+  save_dir: checkpoints/gan_fingerprint_pggan
+  save_best: true
+  save_every: 2
+
+# Logging
+logging:
+  log_dir: outputs/logs
+  log_every: 10
+  use_tensorboard: false
+
+# Evaluation
+evaluation:
+  compute_metrics: true
+  save_predictions: true

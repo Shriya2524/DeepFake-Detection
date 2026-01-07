@@ -1,0 +1,38 @@
+@startuml Accuracy_Graph
+!theme plain
+title Model Accuracy Comparison
+
+skinparam backgroundColor #FEFEFE
+
+rectangle "Model Performance Comparison" as perf #LightBlue {
+    
+    rectangle "Accuracy by Model" as acc {
+        card "                                    Accuracy (%)\n═══════════════════════════════════════════════════\n\nGAN Fingerprint  ████████████████████████████░░  89.2%\n\nSpatiotemporal   ██████████████████████████████░  91.5%\n\nFusion Model     ████████████████████████████████  94.2%\n\n═══════════════════════════════════════════════════\n                 0%   25%   50%   75%   100%" as chart1
+    }
+    
+    rectangle "Metrics Comparison" as metrics {
+        card "┌─────────────────┬───────────┬──────────┬────────┬────────┐\n│     Model       │ Accuracy  │Precision │ Recall │   F1   │\n├─────────────────┼───────────┼──────────┼────────┼────────┤\n│ GAN Fingerprint │   89.2%   │  88.5%   │ 89.8%  │ 89.1%  │\n│ Spatiotemporal  │   91.5%   │  90.8%   │ 92.1%  │ 91.4%  │\n│ Fusion Model    │   94.2%   │  93.8%   │ 94.6%  │ 94.2%  │\n└─────────────────┴───────────┴──────────┴────────┴────────┘" as table
+    }
+    
+    rectangle "Training Progress" as training {
+        card "Loss Over Epochs:\n\nEpoch  1: ████████████████████  2.45\nEpoch  5: ████████████░░░░░░░░  1.23\nEpoch 10: ████████░░░░░░░░░░░░  0.78\nEpoch 15: █████░░░░░░░░░░░░░░░  0.45\nEpoch 20: ███░░░░░░░░░░░░░░░░░  0.28" as loss
+    }
+    
+    rectangle "AUC-ROC Scores" as auc {
+        card "┌─────────────────┬───────────┐\n│     Model       │  AUC-ROC  │\n├─────────────────┼───────────┤\n│ GAN Fingerprint │   0.934   │\n│ Spatiotemporal  │   0.951   │\n│ Fusion Model    │   0.967   │\n└─────────────────┴───────────┘" as auctable
+    }
+}
+
+acc -[hidden]down- metrics
+metrics -[hidden]down- training
+training -[hidden]down- auc
+
+note right of perf
+  <b>Test Conditions:</b>
+  • Dataset: FaceForensics++
+  • Test samples: 2000
+  • 5-fold cross-validation
+  • GPU: NVIDIA RTX 3080
+end note
+
+@enduml

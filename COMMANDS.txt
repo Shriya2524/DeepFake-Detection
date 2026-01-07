@@ -1,0 +1,431 @@
+================================================================================
+                    DEEPFAKE DETECTION SYSTEM - COMMANDS GUIDE
+                    How to Setup and Run the Project
+================================================================================
+
+Created: December 10, 2025
+Project: Deepfake Detection + AI-Generated Image Detection System
+
+================================================================================
+                        QUICK START (TL;DR)
+================================================================================
+
+# One-time setup
+python setup.py
+
+# Start backend (Terminal 1)
+python -m src.api.main
+
+# Start frontend (Terminal 2)
+cd frontend
+npm run dev
+
+# Access the app
+Open http://localhost:3000 in your browser
+
+================================================================================
+                        DETAILED SETUP GUIDE
+================================================================================
+
+------------------------------------------------------------------------------
+STEP 1: PREREQUISITES
+------------------------------------------------------------------------------
+
+Make sure you have installed:
+  - Python 3.8 or higher
+  - Node.js 16 or higher
+  - npm (comes with Node.js)
+  - Git (for version control)
+
+Check versions:
+  python --version      # Should be 3.8+
+  node --version        # Should be 16+
+  npm --version         # Should be 8+
+
+------------------------------------------------------------------------------
+STEP 2: CLONE/DOWNLOAD PROJECT
+------------------------------------------------------------------------------
+
+If you haven't already:
+  git clone <repository-url>
+  cd deepfake_detection
+
+Or if you received the project as a zip:
+  # Extract the zip file
+  cd deepfake_detection
+
+------------------------------------------------------------------------------
+STEP 3: AUTOMATIC SETUP (RECOMMENDED)
+------------------------------------------------------------------------------
+
+Run the setup script which handles everything automatically:
+
+  python setup.py
+
+This will:
+  1. Create Python virtual environment (optional)
+  2. Install all Python dependencies with fallback logic
+  3. Install Node.js dependencies for frontend
+  4. Verify all model files are present
+  5. Test imports and configurations
+
+If setup.py fails on any step, it will show specific error and suggestion.
+
+------------------------------------------------------------------------------
+STEP 4: MANUAL SETUP (If automatic fails)
+------------------------------------------------------------------------------
+
+4a. Python Dependencies:
+
+  # Option 1: With virtual environment (recommended)
+  python -m venv venv
+  
+  # On Windows:
+  venv\Scripts\activate
+  
+  # On Mac/Linux:
+  source venv/bin/activate
+  
+  # Install dependencies
+  pip install -r requirements.txt
+
+  # Option 2: Without virtual environment
+  pip install -r requirements.txt
+
+4b. Frontend Dependencies:
+
+  cd frontend
+  npm install
+
+4c. If TensorFlow fails:
+
+  # Try CPU-only version
+  pip uninstall tensorflow
+  pip install tensorflow-cpu
+
+4d. If PyTorch fails:
+
+  # Try CPU-only version
+  pip uninstall torch torchvision
+  pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+
+================================================================================
+                        RUNNING THE APPLICATION
+================================================================================
+
+------------------------------------------------------------------------------
+METHOD 1: USING TWO TERMINALS (RECOMMENDED)
+------------------------------------------------------------------------------
+
+Terminal 1 - Backend:
+  cd deepfake_detection
+  python -m src.api.main
+  
+  # You should see:
+  # * Running on http://127.0.0.1:8000
+  # * Running on http://192.168.x.x:8000
+
+Terminal 2 - Frontend:
+  cd deepfake_detection/frontend
+  npm run dev
+  
+  # You should see:
+  # VITE v5.x.x ready
+  # Local: http://localhost:3000/
+
+Now open http://localhost:3000 in your browser!
+
+------------------------------------------------------------------------------
+METHOD 2: USING BACKGROUND PROCESSES
+------------------------------------------------------------------------------
+
+On Windows (PowerShell):
+  # Start backend in background
+  Start-Process python -ArgumentList "-m src.api.main" -WindowStyle Hidden
+  
+  # Start frontend
+  cd frontend
+  npm run dev
+
+On Mac/Linux:
+  # Start backend in background
+  python -m src.api.main &
+  
+  # Start frontend
+  cd frontend
+  npm run dev
+
+
+================================================================================
+                        COMMON COMMANDS
+================================================================================
+
+------------------------------------------------------------------------------
+BACKEND COMMANDS
+------------------------------------------------------------------------------
+
+# Start backend server
+python -m src.api.main
+
+# Start backend on different port
+python -m src.api.main --port 8080
+
+# Run with debug mode
+FLASK_DEBUG=1 python -m src.api.main
+
+# Test backend is running
+curl http://localhost:8000/health
+# Expected: {"status": "healthy"}
+
+# Test AI-Generated detector
+curl http://localhost:8000/detect/ai-generated/health
+# Expected: {"status": "healthy", "detector_loaded": true}
+
+------------------------------------------------------------------------------
+FRONTEND COMMANDS
+------------------------------------------------------------------------------
+
+# Install dependencies
+cd frontend
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+
+# Fix linting issues
+npm run lint
+
+------------------------------------------------------------------------------
+TRAINING COMMANDS (OPTIONAL - Models are pre-trained)
+------------------------------------------------------------------------------
+
+# Train GAN Fingerprint model
+python -m src.training.train_gan_fingerprint --data-dir <path-to-data>
+
+# Train Spatiotemporal model
+python -m src.training.train_spatiotemporal --data-dir <path-to-videos>
+
+# Train Fusion model
+python train_fusion_robust.py
+
+# Evaluate model
+python -m src.evaluation.evaluate --checkpoint <path-to-checkpoint>
+
+
+================================================================================
+                        TESTING THE SYSTEM
+================================================================================
+
+------------------------------------------------------------------------------
+TEST 1: HEALTH CHECK
+------------------------------------------------------------------------------
+
+After starting the backend:
+  curl http://localhost:8000/health
+  
+Expected response:
+  {"status": "healthy"}
+
+------------------------------------------------------------------------------
+TEST 2: AI-GENERATED DETECTION
+------------------------------------------------------------------------------
+
+Using curl:
+  curl -X POST -F "file=@test_image.jpg" http://localhost:8000/detect/ai-generated
+
+Using Python:
+  import requests
+  
+  files = {'file': open('test_image.jpg', 'rb')}
+  response = requests.post('http://localhost:8000/detect/ai-generated', files=files)
+  print(response.json())
+
+------------------------------------------------------------------------------
+TEST 3: IMAGE DEEPFAKE DETECTION
+------------------------------------------------------------------------------
+
+Using curl:
+  curl -X POST -F "file=@test_image.jpg" http://localhost:8000/detect/image
+
+------------------------------------------------------------------------------
+TEST 4: VIDEO DEEPFAKE DETECTION
+------------------------------------------------------------------------------
+
+Using curl:
+  curl -X POST -F "file=@test_video.mp4" http://localhost:8000/detect/video
+
+
+================================================================================
+                        TROUBLESHOOTING COMMANDS
+================================================================================
+
+------------------------------------------------------------------------------
+ISSUE: "Module not found" error
+------------------------------------------------------------------------------
+
+  # Make sure you're in the project root
+  cd deepfake_detection
+  
+  # Check if dependencies are installed
+  pip list | grep torch
+  pip list | grep tensorflow
+  
+  # Reinstall if missing
+  pip install -r requirements.txt
+
+------------------------------------------------------------------------------
+ISSUE: "Port already in use" error
+------------------------------------------------------------------------------
+
+On Windows:
+  # Find process using port 8000
+  netstat -ano | findstr :8000
+  
+  # Kill the process (replace PID with actual number)
+  taskkill /PID <PID> /F
+
+On Mac/Linux:
+  # Find and kill process on port 8000
+  lsof -ti:8000 | xargs kill -9
+
+------------------------------------------------------------------------------
+ISSUE: "CUDA out of memory" error
+------------------------------------------------------------------------------
+
+  # Use CPU instead (slower but works)
+  export CUDA_VISIBLE_DEVICES=""
+  python -m src.api.main
+
+Or in the code, models will automatically fallback to CPU.
+
+------------------------------------------------------------------------------
+ISSUE: "Permission denied" error (npm)
+------------------------------------------------------------------------------
+
+On Windows:
+  # Run PowerShell as Administrator
+  
+On Mac/Linux:
+  sudo npm install
+
+------------------------------------------------------------------------------
+ISSUE: Frontend shows "Failed to fetch"
+------------------------------------------------------------------------------
+
+1. Make sure backend is running on port 8000
+2. Check CORS settings in src/api/main.py
+3. Try accessing backend directly:
+   curl http://localhost:8000/health
+
+------------------------------------------------------------------------------
+ISSUE: Models not loading
+------------------------------------------------------------------------------
+
+  # Check if model files exist
+  dir checkpoints\spatiotemporal\best_model.pt
+  dir checkpoints\gan_fingerprint\best_model.pt
+  dir checkpoints\fusion\best_model.pt
+  dir src\api\ai_generated\image_classifier_model.keras
+
+  # If missing, re-download or retrain models
+
+
+================================================================================
+                        ENVIRONMENT VARIABLES
+================================================================================
+
+Optional environment variables you can set:
+
+  # Disable GPU (force CPU)
+  CUDA_VISIBLE_DEVICES=""
+  
+  # Set Flask debug mode
+  FLASK_DEBUG=1
+  
+  # Change default port
+  FLASK_PORT=8080
+  
+  # Disable TensorFlow warnings
+  TF_CPP_MIN_LOG_LEVEL=2
+
+
+================================================================================
+                        USEFUL SCRIPTS
+================================================================================
+
+------------------------------------------------------------------------------
+SCRIPT: Check System Status
+------------------------------------------------------------------------------
+
+Create a file called check_status.py:
+
+  import requests
+  import sys
+  
+  def check_status():
+      try:
+          r = requests.get('http://localhost:8000/health', timeout=5)
+          if r.status_code == 200:
+              print("✓ Backend is running")
+          else:
+              print("✗ Backend returned error:", r.status_code)
+      except:
+          print("✗ Backend is not running")
+      
+      try:
+          r = requests.get('http://localhost:3000', timeout=5)
+          if r.status_code == 200:
+              print("✓ Frontend is running")
+          else:
+              print("✗ Frontend returned error:", r.status_code)
+      except:
+          print("✗ Frontend is not running")
+  
+  if __name__ == "__main__":
+      check_status()
+
+Run with: python check_status.py
+
+------------------------------------------------------------------------------
+SCRIPT: Kill All Processes
+------------------------------------------------------------------------------
+
+Windows (PowerShell):
+  taskkill /F /IM python.exe 2>$null
+  taskkill /F /IM node.exe 2>$null
+
+Mac/Linux:
+  pkill -f "python -m src.api"
+  pkill -f "npm run dev"
+
+
+================================================================================
+                        SUMMARY OF COMMANDS
+================================================================================
+
+Setup:
+  python setup.py                    # Automatic setup
+
+Run Backend:
+  python -m src.api.main             # Start API server
+
+Run Frontend:
+  cd frontend && npm run dev         # Start React app
+
+Test:
+  curl http://localhost:8000/health  # Check backend
+
+Access:
+  http://localhost:3000              # Open in browser
+
+================================================================================
+                        END OF GUIDE
+================================================================================
+

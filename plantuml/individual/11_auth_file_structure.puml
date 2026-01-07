@@ -1,0 +1,100 @@
+@startuml File Structure Auth Implementation
+
+skinparam backgroundColor #FEFEFE
+skinparam packageStyle rectangle
+
+title Auth and History - Files Created and Modified
+
+package "Backend src/api" as Backend #E3F2FD {
+    
+    class "models.py" as Models #C8E6C9 {
+        NEW
+        --
+        User model
+        AnalysisHistory model
+    }
+    
+    class "auth.py" as Auth #C8E6C9 {
+        NEW
+        --
+        /auth/register
+        /auth/login
+        /auth/logout
+        /auth/me
+    }
+    
+    class "history.py" as History #C8E6C9 {
+        NEW
+        --
+        GET /history
+        POST /history
+        DELETE /history
+    }
+    
+    class "main.py" as Main #FFF9C4 {
+        MODIFIED
+        --
+        JWT init
+        SQLAlchemy init
+        Auto-save history
+    }
+}
+
+package "Frontend src" as Frontend #FFF3E0 {
+    
+    class "App.tsx" as AppTsx #FFF9C4 {
+        MODIFIED
+        --
+        AuthProvider wrapper
+        History from API
+        Login routes
+    }
+    
+    class "AuthContext.tsx" as AuthContextTsx #C8E6C9 {
+        NEW
+        --
+        useAuth hook
+        login register logout
+    }
+    
+    class "LoginPage.tsx" as LoginPageTsx #C8E6C9 {
+        NEW
+    }
+    
+    class "RegisterPage.tsx" as RegisterPageTsx #C8E6C9 {
+        NEW
+    }
+    
+    class "Layout.tsx" as LayoutTsx #FFF9C4 {
+        MODIFIED
+        --
+        User info header
+        Logout button
+    }
+    
+    class "HomePage.tsx" as HomePageTsx #FFF9C4 {
+        MODIFIED
+        --
+        Removed model selector
+    }
+}
+
+package "Config" as Config #ECEFF1 {
+    class "requirements.txt" as Requirements #FFF9C4 {
+        MODIFIED
+        --
+        flask-jwt-extended
+        flask-sqlalchemy
+        bcrypt
+    }
+    
+    class "package.json" as PackageJson #FFF9C4 {
+        MODIFIED
+        --
+        react-router-dom
+    }
+}
+
+note "Green = NEW file\nYellow = MODIFIED" as Legend
+
+@enduml
