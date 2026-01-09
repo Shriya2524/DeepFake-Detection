@@ -545,9 +545,5 @@ If you use this project in your research, please cite:
 }
 ```
 
----
 
-## Contact
-
-For questions or issues, please open a GitHub issue or contact [your-email@example.com].
 
