@@ -6,9 +6,10 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 export function AboutPage() {
   const teamMembers = [
     { name: 'Mrs.Prathibha', role: 'Project Guide', initials: 'PA' },
-    { name: 'Chethana R', role: 'Lead Researcher', initials: 'CR' },
-    { name: 'Shriya R , A Anne Serena', role: 'ML Engineers', initials: 'SA' },
-    { name: 'Bharath M', role: 'Data Scientist', initials: 'BM' },
+    { name: 'Chethana R', role: 'Team Lead, DL Engineer', initials: 'CR' },
+    { name: 'Shriya R ', role: 'DL Engineers', initials: 'SR' },
+    { name: 'Bharath M', role: 'Data Scientist', initials: 'MB' },
+    { name: 'A Anne Serena', role: 'Frontend Designer', initials: 'AS' }
   ];
 
   const techniques = [
@@ -137,20 +138,38 @@ export function AboutPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* First 4 members in 2x2 grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {teamMembers.map((member, index) => (
-              <div key={index} className="flex items-center gap-4 p-4 bg-secondary/50 rounded-lg">
-                <Avatar className="w-12 h-12">
-                  <AvatarFallback className="bg-primary text-white">
+            {teamMembers.slice(0, 4).map((member, index) => (
+              <div key={index} className="flex items-center gap-4 p-4 bg-secondary/50 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <Avatar className="w-12 h-12 ring-2 ring-primary/20">
+                  <AvatarFallback className="bg-primary text-white font-semibold">
                     {member.initials}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-foreground">{member.name}</p>
+                  <p className="text-foreground font-medium">{member.name}</p>
                   <p className="text-sm text-muted-foreground">{member.role}</p>
                 </div>
               </div>
             ))}
+          </div>
+          
+          {/* Anne Serena - centered in row 3 */}
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="md:col-start-1 md:col-span-2 flex justify-center">
+              <div className="flex items-center gap-4 p-4 bg-secondary/50 rounded-lg shadow-sm hover:shadow-md transition-shadow w-full md:w-[calc(50%-12px)]">
+                <Avatar className="w-12 h-12 ring-2 ring-primary/20">
+                  <AvatarFallback className="bg-primary text-white font-semibold">
+                    {teamMembers[4].initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-foreground font-medium">{teamMembers[4].name}</p>
+                  <p className="text-sm text-muted-foreground">{teamMembers[4].role}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

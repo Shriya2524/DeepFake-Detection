@@ -114,3 +114,28 @@ temp/
 .DS_Store
 Thumbs.db
 
+# Personal documentation
+*.txt
+!requirements.txt
+!runtime.txt
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.env
+frontend/.env.local
+frontend/.vite/
+
+# Python uploads and test images
+Photo_Detector/uploads/*
+!Photo_Detector/uploads/.gitkeep
+Photo_Detector/test_images/*.jpg
+Photo_Detector/test_images/*.jpeg
+Photo_Detector/test_images/*.png
+
+# Archive
+archive/
+
+# Cache
+.gradio/

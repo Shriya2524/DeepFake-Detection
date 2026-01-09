@@ -87,10 +87,11 @@ Deepfake technology poses significant threats to information integrity and perso
 ### Prerequisites
 
 - Python 3.10 or higher
+- Node.js 16+ and npm
 - CUDA-capable GPU (recommended) or CPU
 - 8GB+ RAM
 
-### Setup
+### Backend Setup
 
 1. **Clone the repository**
 ```bash
@@ -109,7 +110,7 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
-3. **Install dependencies**
+3. **Install Python dependencies**
 ```bash
 pip install -r requirements.txt
 ```
@@ -118,6 +119,24 @@ pip install -r requirements.txt
 ```bash
 python -c "import torch; print(f'PyTorch: {torch.__version__}')"
 python -c "import cv2; print(f'OpenCV: {cv2.__version__}')"
+```
+
+### Frontend Setup
+
+1. **Navigate to frontend directory**
+```bash
+cd frontend
+```
+
+2. **Install Node dependencies**
+```bash
+npm install
+```
+
+3. **Configure environment**
+Create a `.env` file in the `frontend/` directory:
+```bash
+VITE_API_URL=http://localhost:5000
 ```
 
 ---
@@ -280,28 +299,33 @@ print(f"Label: {result['label']}")
 
 ## Web Interface
 
-### Launch Gradio App
+### Launch the Application
 
+**Backend (Flask Server)**
 ```bash
-python ui/app_gradio.py
+cd Photo_Detector
+python app.py
 ```
+The Flask API will be available at `http://localhost:5000`
 
-Or:
+**Frontend (React Dashboard)**
 
+In a new terminal:
 ```bash
-cd deepfake_detection
-python -m ui.app_gradio
+cd frontend
+npm run dev
 ```
-
-The web interface will be available at `http://localhost:7860`
+The web interface will be available at `http://localhost:5173`
 
 ### Features
 
 - 📹 Upload and analyze videos
 - 🖼️ Upload and analyze images
-- 📊 View frame-level scores
-- ⚙️ Adjust detection threshold
-- 📈 Visualize attention weights
+- 📊 View detection confidence scores
+- 📈 Real-time detection results
+- 🎨 Modern, responsive UI with dark mode
+- 📋 Detailed analysis reports
+- 🌐 Upload by file or URL
 
 ---
 
@@ -310,7 +334,7 @@ The web interface will be available at `http://localhost:7860`
 ```
 deepfake_detection/
 ├── README.md                     # This file
-├── requirements.txt              # Dependencies
+├── requirements.txt              # Python dependencies
 ├── config/
 │   ├── default_config.yaml       # Main configuration
 │   └── experiment_configs/       # Experiment-specific configs
@@ -327,9 +351,19 @@ deepfake_detection/
 │   ├── training/                 # Training scripts
 │   ├── inference/                # Inference pipeline and CLI
 │   ├── evaluation/               # Metrics and visualization
+│   ├── api/                      # Flask API endpoints
 │   └── utils/                    # Config, logging, device utils
-├── ui/
-│   └── app_gradio.py             # Web interface
+├── Photo_Detector/
+│   ├── app.py                    # Flask backend server
+│   ├── config.py                 # Backend configuration
+│   ├── multi_check_detector.py   # Detection logic
+│   ├── static/                   # Static assets
+│   └── templates/                # HTML templates
+├── frontend/
+│   ├── src/                      # React components
+│   ├── package.json              # Node dependencies
+│   ├── vite.config.ts            # Vite configuration
+│   └── index.html                # Entry HTML
 ├── tests/                        # Unit tests
 └── notebooks/                    # Jupyter notebooks (optional)
 ```
@@ -503,10 +537,10 @@ This project is for educational purposes only. Do not use for creating or distri
 If you use this project in your research, please cite:
 
 ```bibtex
-@misc{deepfake_detection_2024,
+@misc{deepfake_detection_2025,
   title={Deepfake Detection Using Spatiotemporal Analysis and GAN Fingerprinting},
-  author={Student Name},
-  year={2024},
+  author={Shriya R},
+  year={2025},
   note={B.Tech/BE Project}
 }
 ```
